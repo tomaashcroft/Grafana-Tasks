@@ -1,0 +1,103 @@
+#!/bin/bash
+# Gets OST stats and plonk them into rrdtool.
+
+#Set to 1 to enable debugging.
+DEBUG=0
+
+# Location of the database
+DATABASE=/nfs/ssg_group/lustre-monitoring/rrds/$HOSTNAME.rrd
+
+while [ 1  ] ; do 
+
+
+readcall=0
+writecall=0
+readbytes=0
+writebytes=0
+cacheaccess=0
+cachehit=0
+cachemiss=0
+
+# read stats
+while read line ; do
+set -- $line
+    case $1 in
+        read_bytes*)
+	    ((readcall=$readcall+$2))
+            ((readbytes=$readbytes+$7))
+            ;;
+        write_bytes*)
+	    ((writecall=$writecall+$2))
+            ((writebytes=$writebytes+$7))
+            ;;
+	cache_access*)
+	    ((cacheaccess=$cacheaccess+$2))
+	    ;;
+	cache_hit*)
+	    ((cachehit=$cachehit+$2))
+	    ;;
+	cache_miss*)
+	    ((cachemiss=$cachemiss+$2))
+	    ;;
+    esac
+done < <(cat  /proc/fs/lustre/obdfilter/*/stats)
+
+# In lustre 2.4.X, the cache stats have moved.
+
+if [ -d /proc/fs/lustre/osd-ldiskfs ] ; then
+
+	while read line; do
+	set -- $line
+	case $1 in 
+		cache_access*)
+			((cacheaccess=$cacheaccess+$2))
+			;;
+		cache_hit*)
+			((cachehit=$cachehit+$2))
+			;;
+		cache_miss*)
+			((cachemiss=$cachemiss+$2))
+			;;
+	 esac
+	done < <(cat /proc/fs/lustre/osd-ldiskfs/*/stats)
+
+fi
+
+
+# if counters=0, we didn't read anything, so we set it
+# to rrdtool unknown.
+if [ $readcall == 0 ] ; then
+readcall=U
+fi
+
+if [ $writecall == 0 ] ; then
+writecall=U
+fi
+
+if [ $readbytes == 0 ] ; then
+readbytes=U
+fi
+if [ $writebytes == 0 ] ; then
+writebytes=U
+fi
+if [ $cachehit == 0 ] ; then
+cachehit=U
+fi
+if [ $cachemiss == 0 ] ; then
+cachemiss=U
+fi
+if [ $cacheaccess == 0 ] ; then
+cacheaccess=U
+fi
+
+timestamp=`/bin/date +%s`
+
+if [ $DEBUG == 1 ] ;
+then
+	echo /usr/bin/rrdtool update $DATABASE $timestamp:$readcall:$writecall:$readbytes:$writebytes:$cacheaccess:$cachehit:$cachemiss
+	exit 0
+fi
+/usr/bin/rrdtool update $DATABASE $timestamp:$readcall:$writecall:$readbytes:$writebytes:$cacheaccess:$cachehit:$cachemiss
+
+sleep 30
+done
