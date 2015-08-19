@@ -1,14 +1,20 @@
-for filename in glob.glob("/proc/fs/lustre/obdfilter/*/stats"):
+#!/usr/bin/env python
+# This script is looking for data within different lustre stats.
+
+import glob
+for filename in glob.glob("/proc/fs/lustre/obdfilter/lus14*/stats"):
+	#Looking for the files within this directory and outputing certain lines from it
 	with open(filename,'r') as procfile:
 		for line in procfile:
 			if 'read_bytes' in line:
-				print(line)
+				print filename + " current read_bytes are " + line.split()[1]
 			elif 'write_bytes' in line:
-				print(line)
+				print filename + " current write_bytes are " + line.split()[1]
+				print
 			elif 'cache_access' in line:
 				print(line)
 			elif 'cache_hit' in line:
 				print(line)
-			else: 'cache_miss' in line
+			elif 'cache_miss' in line:
 				print(line)
 		
