@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 # This script is looking for data within different lustre stats.
-
+#with open('~/Documents/Tasks/testlusstats.txt', 'a') as lusstats:
 import glob
-for filename in glob.glob("/proc/fs/lustre/obdfilter/lus14*/stats"):
-	#Looking for the files within this directory and outputing certain lines from it
-	with open(filename,'r') as procfile:
-		for line in procfile:
-			if 'read_bytes' in line:
-				print filename + " current read_bytes are " + line.split()[1]
-			elif 'write_bytes' in line:
-				print filename + " current write_bytes are " + line.split()[1]
-				print
-			elif 'cache_access' in line:
-				print(line)
-			elif 'cache_hit' in line:
-				print(line)
-			elif 'cache_miss' in line:
-				print(line)
-		
+for filename in glob.glob("/proc/fs/lustre/obdfilter/*/stats"):
+		#Looking for the files within this directory and outputing certain lines from it
+		with open(filename,'r') as procfile:
+			ostname = filename.split("/")[-2]
+			for line in procfile:
+				fieldentry = line.split()
+				if 'read_bytes' in line:
+					print ostname + " current read_calls are " + fieldentry[1]
+					print ostname + " current read_bytes are " + fieldentry[6]
+				elif 'write_bytes' in line:
+					print ostname + " current write_calls are " + fieldentry[1]
+					print ostname + " current write_bytes are " + fieldentry[6]
+					print
+				elif 'cache_access' in line:
+					print(line)
+				elif 'cache_hit' in line:
+					print(line)
+				elif 'cache_miss' in line:
+					print(line)
+			
