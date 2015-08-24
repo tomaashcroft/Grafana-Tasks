@@ -1,26 +1,63 @@
-#!/usr/bin/env python
+#!/usr/bin/env python-2.7.9
 # This script is looking for data within different lustre stats.
+#~/Documents/Tasks/getstats-ost.py
 
+
+#importing the right libraries
 import glob
+from influxdb.influxdb08 import InfluxDBClient, SeriesHelper
+import platform
+
+
+# InfluxDB connections settings
+host = 'metrics01.internal.sanger.ac.uk'
+port = 8086
+user = 'lustre'
+password = 'lustre'
+dbname = 'lustre'
+
+myclient = InfluxDBClient(host, port, user, password, dbname)
+
+class LustreOSTStats(SeriesHelper):
+    class Meta:
+        # The client should be an instance of InfluxDBClient.
+        client = myclient
+        # The series name must be a string. Add dependent fields/tags in curly brackets.
+        series_name = '{series_name}'
+        # Defines all the fields in this time series.
+        fields = ['series_name', 'hostname', 'disk', 'value' ]
+        # Defines all the tags for the series.
+        # tags = ['hostname']
+        # Defines the number of data points to store prior to writing on the wire.
+        bulk_size = 5
+        # autocommit must be set to True when using bulk_size
+        autocommit = True
+
+hostname=platform.node()
 for filename in glob.glob("/proc/fs/lustre/obdfilter/*/stats"):
 		#Looking for the files within this directory and outputing certain lines from it
 		with open(filename,'r') as procfile:
 			ostname = filename.split("/")[-2]
-			with open('/tmp/testlusstats.txt', 'a') as lusstats:
-				for line in procfile:
-					fieldentry = line.split()
-					if 'read_bytes' in line:
-						lusstats.write(ostname + " current read_calls are " + fieldentry[1]+"\n")
-						lusstats.write(ostname + " current read_bytes are " + fieldentry[6]+"\n")
-						lusstats.write("\n")
-					elif 'write_bytes' in line:
-						lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
-						lusstats.write(ostname + " current write_bytes are " + fieldentry[6]+"\n")
-						lusstats.write("\n")
-					elif 'cache_access' in line:
-						print(line)
-					elif 'cache_hit' in line:
-						print(line)
-					elif 'cache_miss' in line:
-						print(line)
+			#with open('/tmp/testlusstats.txt', 'a') as lusstats:
+			for line in procfile:
+				fieldentry = line.split()
+				if 'read_bytes' in line:
+					#lusstats.write(ostname + " current read_calls are " + fieldentry[1]+"\n")
+					LustreOSTStats(series_name="OST_read_calls", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
+					#lusstats.write(ostname + " current read_bytes are " + fieldentry[6]+"\n")
+					LustreOSTStats(series_name="OST_read_bytes", hostname=hostname, disk=ostname, value=int(fieldentry[6]))
+					#lusstats.write("\n")
+				elif 'write_bytes' in line:
+					#lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
+					LustreOSTStats(series_name="OST_write_calls", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
+					#lusstats.write(ostname + " current write_bytes are " + fieldentry[6]+"\n")
+					LustreOSTStats(series_name="OST_write_bytes", hostname=hostname, disk=ostname, value=int(fieldentry[6]))
+					#lusstats.write("\n")
+					'''below contains older code that is not currently being used.
+				elif 'cache_access' in line:
+					print(line)
+				elif 'cache_hit' in line:
+					print(line)
+				elif 'cache_miss' in line:
+					print(line)'''
 			
