@@ -53,11 +53,14 @@ for filename in glob.glob("/proc/fs/lustre/obdfilter/*/stats"):
 					#lusstats.write(ostname + " current write_bytes are " + fieldentry[6]+"\n")
 					LustreOSTStats(series_name="OST_write_bytes", hostname=hostname, disk=ostname, value=int(fieldentry[6]))
 					#lusstats.write("\n")
-					'''below contains older code that is not currently being used.
 				elif 'cache_access' in line:
-					print(line)
+					#lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
+					LustreOSTStats(series_name="OST_cache_access", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
 				elif 'cache_hit' in line:
-					print(line)
+					#lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
+					LustreOSTStats(series_name="OST_cache_hit", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
 				elif 'cache_miss' in line:
-					print(line)'''
-			
+					#lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
+					LustreOSTStats(series_name="OST_cache_miss", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
+def path(pathname):
+				pass			
