@@ -38,7 +38,6 @@ for filename in glob.glob("/proc/fs/lustre/obdfilter/*/stats"):
 		#Looking for the files within this directory and outputing certain lines from it
 		with open(filename,'r') as procfile:
 			ostname = filename.split("/")[-2]
-			#with open('/tmp/testlusstats.txt', 'a') as lusstats:
 			for line in procfile:
 				fieldentry = line.split()
 				if 'read_bytes' in line:
