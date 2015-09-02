@@ -1,4 +1,4 @@
-#!/usr/bin/env python-2.7.9
+#!/software/bin/python-2.7.9
 # This script is looking for data within different lustre stats.
 #~/Documents/Tasks/getstats-ost.py
 
@@ -33,33 +33,30 @@ class LustreOSTStats(SeriesHelper):
         # autocommit must be set to True when using bulk_size
         autocommit = True
 
-hostname=platform.node()
-for filename in glob.glob("/proc/fs/lustre/obdfilter/*/stats"):
+hostname = platform.node()
+
+def getprocstats(pathname):
+	for filename in glob.glob(pathname):
 		#Looking for the files within this directory and outputing certain lines from it
 		with open(filename,'r') as procfile:
 			ostname = filename.split("/")[-2]
+			#with open('/tmp/testlusstats.txt', 'a') as lusstats:
 			for line in procfile:
 				fieldentry = line.split()
 				if 'read_bytes' in line:
-					#lusstats.write(ostname + " current read_calls are " + fieldentry[1]+"\n")
 					LustreOSTStats(series_name="OST_read_calls", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
-					#lusstats.write(ostname + " current read_bytes are " + fieldentry[6]+"\n")
 					LustreOSTStats(series_name="OST_read_bytes", hostname=hostname, disk=ostname, value=int(fieldentry[6]))
-					#lusstats.write("\n")
 				elif 'write_bytes' in line:
-					#lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
 					LustreOSTStats(series_name="OST_write_calls", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
-					#lusstats.write(ostname + " current write_bytes are " + fieldentry[6]+"\n")
 					LustreOSTStats(series_name="OST_write_bytes", hostname=hostname, disk=ostname, value=int(fieldentry[6]))
-					#lusstats.write("\n")
 				elif 'cache_access' in line:
-					#lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
 					LustreOSTStats(series_name="OST_cache_access", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
 				elif 'cache_hit' in line:
-					#lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
 					LustreOSTStats(series_name="OST_cache_hit", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
 				elif 'cache_miss' in line:
-					#lusstats.write(ostname + " current write_calls are " + fieldentry[1]+"\n")
-					LustreOSTStats(series_name="OST_cache_miss", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
-def path(pathname):
-				pass			
+					LustreOSTStats(series_name="OST_cache_miss", hostname=hostname, disk=ostname, value=int(fieldentry[1]))				
+
+
+
+getprocstats("/proc/fs/lustre/obdfilter/*/stats")
+getprocstats("/proc/fs/lustre/osd-ldiskfs/*/stats")
