@@ -1,7 +1,7 @@
 #!/software/bin/python-2.7.9
 # This script is looking for mds data within different lustre file systems.
 
-#importing the right libraries
+# importing the right libraries
 import glob
 from influxdb.influxdb08 import InfluxDBClient, SeriesHelper
 import platform
@@ -34,14 +34,14 @@ class LustreMDSStats(SeriesHelper):
         autocommit = True
 
 hostname = platform.node()
-check_output('/usr/sbin/lctl list_param mdt.*.md_stats', shell=True)
+# check_output('/usr/sbin/lctl list_param mdt.*.md_stats', shell=True)
 lctl_output = check_output(['/usr/sbin/lctl', 'list_param', 'mdt.*.md_stats'])
-statsfile = lctl_output.strip().replace('.','/')
-
+statsfile = "/proc/fs/lustre/" + lctl_output.strip().replace('.','/')
+# print (statsfile)
 
 def getprocstats(pathname):
 	for filename in glob.glob(pathname):
-		#Looking for the files within this directory and outputing certain lines from it
+		# Looking for the files within this directory and outputing certain lines from it
 		with open(filename,'r') as procfile:
 			ostname = filename.split("/")[-2]
 			for line in procfile:
@@ -73,5 +73,3 @@ def getprocstats(pathname):
 getprocstats("/proc/fs/lustre/mds/*MDT0000/stats")
 getprocstats("/proc/fs/lustre/osc/*osc/stats")
 getprocstats(statsfile)
-
-# ok running cfengine?
