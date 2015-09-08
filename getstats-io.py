@@ -1,4 +1,4 @@
-#!/usr/bin/env python-2.7.9
+#!/software/bin/python-2.7.9
 # This script is looking for data within different lustre stats.
 #~/Documents/Tasks/getstats-io.py
 
