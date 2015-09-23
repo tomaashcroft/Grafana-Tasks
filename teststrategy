@@ -1,1 +1,64 @@
+#!/software/bin/python-2.7.9
+# This script is looking for data within different lustre stats.
+#~/Documents/Tasks/getstats-ost.py
+
+
+#importing the right libraries
+import glob
+from influxdb.influxdb08 import InfluxDBClient, SeriesHelper
+import platform
+
+
+# InfluxDB connections settings
+host = 'metrics01.internal.sanger.ac.uk'
+port = 8086
+user = 'lustre'
+password = 'lustre'
+dbname = 'lustre'
+
+myclient = InfluxDBClient(host, port, user, password, dbname)
+
+class LustreOSTStats(SeriesHelper):
+    class Meta:
+        # The client should be an instance of InfluxDBClient.
+        client = myclient
+        # The series name must be a string. Add dependent fields/tags in curly brackets.
+        series_name = '{series_name}'
+        # Defines all the fields in this time series.
+        fields = ['series_name', 'hostname', 'disk', 'value' ]
+        # Defines all the tags for the series.
+        # tags = ['hostname']
+        # Defines the number of data points to store prior to writing on the wire.
+        bulk_size = 5
+        # autocommit must be set to True when using bulk_size
+        autocommit = True
+
+hostname = platform.node()
+
+def getprocstats(pathname):
+	for filename in glob.glob(pathname):
+		#Looking for the files within this directory and outputing certain lines from it
+		with open(filename,'r') as procfile:
+			ostname = filename.split("/")[-2]
+			#with open('/tmp/testlusstats.txt', 'a') as lusstats:
+			for line in procfile:
+				fieldentry = line.split()
+				if 'read_bytes' in line:
+					LustreOSTStats(series_name="OST_read_calls", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
+					LustreOSTStats(series_name="OST_read_bytes", hostname=hostname, disk=ostname, value=int(fieldentry[6]))
+				elif 'write_bytes' in line:
+					LustreOSTStats(series_name="OST_write_calls", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
+					LustreOSTStats(series_name="OST_write_bytes", hostname=hostname, disk=ostname, value=int(fieldentry[6]))
+				elif 'cache_access' in line:
+					LustreOSTStats(series_name="OST_cache_access", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
+				elif 'cache_hit' in line:
+					LustreOSTStats(series_name="OST_cache_hit", hostname=hostname, disk=ostname, value=int(fieldentry[1]))
+				elif 'cache_miss' in line:
+					LustreOSTStats(series_name="OST_cache_miss", hostname=hostname, disk=ostname, value=int(fieldentry[1]))				
+
+
+
+getprocstats("/proc/fs/lustre/obdfilter/*/stats")
+getprocstats("/proc/fs/lustre/osd-ldiskfs/*/stats")
+
 
