@@ -1,6 +1,8 @@
 #!/software/bin/python-2.7.9
+# Copyright (C) <2015> Genome Research Ltd.
 # This script is looking for data within different lustre stats.
 #~/Documents/Tasks/getstats-io.py
+
 
 #importing the right libraries
 import glob
